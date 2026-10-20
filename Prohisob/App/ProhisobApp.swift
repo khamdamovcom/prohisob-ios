@@ -48,9 +48,11 @@ struct RootView: View {
             }
         }
         .background(Palette.bg.ignoresSafeArea())
-        .overlay(alignment: .top) { ToastView() }
         .animation(.easeOut(duration: 0.25), value: session.kind)
-        .task { await session.start() }
+        .task {
+            ToastOverlay.shared.install(session: session)   // xabarlar sheet/alert ustida ham ko'rinadi
+            await session.start()
+        }
         .onChange(of: phase) { _, p in session.scenePhaseChanged(p) }
     }
 }
