@@ -120,6 +120,7 @@ private struct CliGreeting: View {
                     .foregroundStyle(Palette.ink)
                     .lineLimit(2)
             }
+            .padding(.horizontal, 4)   // katta sarlavha bilan bir chiziqda
             .accessibilityElement(children: .combine)
             CliProrabCard(prorab: me.prorab)
         }
