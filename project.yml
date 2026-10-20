@@ -38,6 +38,7 @@ targets:
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIRequiresFullScreen: true
         NSCameraUsageDescription: Chek va kvitansiyani suratga olib, yozuvga biriktirish uchun kamera kerak.
         NSPhotoLibraryUsageDescription: Galereyadagi chek rasmlarini yozuvga biriktirish uchun.
         NSFaceIDUsageDescription: Ilovani Face ID bilan qulflash va tez ochish uchun.
@@ -46,6 +47,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.prohisob.app
         PRODUCT_NAME: Prohisob
+        TARGETED_DEVICE_FAMILY: "1"   # faqat iPhone (XcodeGen target darajasida "1,2" qo'yadi — loyiha darajasidagisi yetmaydi)
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
         ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS: NO
