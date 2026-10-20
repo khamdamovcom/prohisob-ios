@@ -36,8 +36,8 @@ xcrun simctl boot "$UDID"
 xcrun simctl bootstatus "$UDID" -b > /dev/null
 xcrun simctl status_bar "$UDID" override --time "9:41" --dataNetwork wifi --wifiMode active --wifiBars 3 --cellularMode active --cellularBars 4 --batteryState charged --batteryLevel 100
 xcrun simctl install "$UDID" "$APP"
-# birinchi ochilish — tizim oynalari o'tib ketsin
-xcrun simctl launch "$UDID" com.prohisob.app -shot home > /dev/null; sleep ${WARMUP:-25}
+# birinchi ochilish — tizim bildirishnomalari («Ready for Apple Intelligence» va h.k.) o'tib ketsin
+xcrun simctl launch "$UDID" com.prohisob.app -shot home > /dev/null; sleep ${WARMUP:-75}
 mkdir -p "$OUT/phone"
 for i in "${!SHOTS[@]}"; do
   theme=${THEME:-light}; case "${NAMES[$i]}" in dark|*-dark) theme=dark ;; esac
