@@ -94,6 +94,7 @@ struct ReportView: View {
     }
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 ReportPeriodBar(period: period, customTitle: customTitle) { p in
@@ -108,6 +109,12 @@ struct ReportView: View {
             .padding(.horizontal, Metrics.pad)
             .padding(.top, 8)
             .padding(.bottom, 32)
+        }
+        // VAQTINCHA: skrinshot tekshiruvi (pastki bo'limlar) — keyin olib tashlanadi
+        .onChange(of: report == nil) { _, isNil in
+            guard !isNil, let s = session.shot, s.hasPrefix("rep@") else { return }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { proxy.scrollTo(String(s.dropFirst(4)), anchor: .top) }
+        }
         }
         .background(Palette.bg.ignoresSafeArea())
         .navigationTitle("Hisobot")
@@ -161,13 +168,13 @@ struct ReportView: View {
                     .padding(.top, 8)
             } else {
                 ReportMonthsCard(months: months)
-                ReportBreakdownCard(stats: r.stats)
+                ReportBreakdownCard(stats: r.stats).id("donut")
                 if !objects.isEmpty {
-                    ReportObjectsSection(rows: objects)
+                    ReportObjectsSection(rows: objects).id("objects")
                 }
             }
             if !workers.isEmpty {
-                ReportDebtsSection(title: "Ustalarga qarz", workers: workers, shops: [])
+                ReportDebtsSection(title: "Ustalarga qarz", workers: workers, shops: []).id("debts")
             }
             if !shops.isEmpty {
                 ReportDebtsSection(title: "Magazinlarga qarz", workers: [], shops: shops)
@@ -195,8 +202,11 @@ struct ReportView: View {
             Button {
                 Task { await export() }
             } label: {
-                Label("Excel", systemImage: "square.and.arrow.up")
-                    .labelStyle(.titleAndIcon)
+                HStack(spacing: 6) {
+                    Image(systemName: "square.and.arrow.up")
+                    Text("Excel")
+                }
+                .font(.subheadline.weight(.semibold))
             }
             .accessibilityLabel("Excel faylga yuklab olish")
         }

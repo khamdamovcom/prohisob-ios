@@ -96,6 +96,7 @@ struct DashboardView: View {
     @State private var loading = false
 
     var body: some View {
+        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 DashGreeting()
@@ -104,6 +105,16 @@ struct DashboardView: View {
             .padding(.horizontal, Metrics.pad)
             .padding(.top, 2)
             .padding(.bottom, 32)
+        }
+        // VAQTINCHA: skrinshot tekshiruvi (pastki bo'limlar) — keyin olib tashlanadi
+        .onChange(of: data == nil) { _, isNil in
+            guard !isNil, let s = session.shot else { return }
+            if s.hasPrefix("home@") {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { proxy.scrollTo(String(s.dropFirst(5)), anchor: .top) }
+            } else if s.hasPrefix("rep@"), router.homePath.isEmpty {
+                router.push(.report)
+            }
+        }
         }
         .background(Palette.bg.ignoresSafeArea())
         .navigationTitle("Asosiy")
@@ -159,12 +170,12 @@ struct DashboardView: View {
             periodPicker
             DashHero(stats: d.stats, caption: period.caption)
                 .opacity(loading ? 0.6 : 1)
-            tiles(d)
             DashQuickActions()
-            objectsSection(d)
-            workersSection(d)
+            tiles(d)
+            objectsSection(d).id("objects")
+            workersSection(d).id("workers")
             shopsSection(d)
-            recentSection(d)
+            recentSection(d).id("recent")
         }
         .animation(.easeOut(duration: 0.2), value: loading)
     }
