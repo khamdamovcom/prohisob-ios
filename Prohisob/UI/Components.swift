@@ -662,6 +662,6 @@ enum ImagePrep {
 
     static func upload(_ image: UIImage, index: Int = 0) -> UploadFile? {
         guard let d = jpeg(image) else { return nil }
-        return UploadFile(data: d, filename: "chek-\(Int(Date().timeIntervalSince1970))-\(index).jpg", mime: "image/jpeg")
+        return UploadFile(data: d, filename: "chek-\(index)-\(UUID().uuidString.prefix(8)).jpg", mime: "image/jpeg")
     }
 }
