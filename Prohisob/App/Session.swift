@@ -129,10 +129,11 @@ final class Session {
             guard let m: Me = try? await API.shared.get("/api/me") else { return }
             if m.user == nil { clear(); return }
             me = m
-            // egasi tanlagan kabinet o'chirilgan bo'lsa — o'zinikiga qaytadi
-            if m.user?.roleValue == .egasi, let k = kabinetId, !(m.kabinetlar ?? []).contains(where: { $0.id == k }) {
+            // egasi tanlagan kabinet o'chirilgan yoki to'xtatilgan bo'lsa (server o'z kabinetini qaytaradi) — o'zinikiga qaytamiz
+            if m.user?.roleValue == .egasi, let k = kabinetId, m.kabinet?.id != k {
                 setKabinet(nil)
-                me = try? await API.shared.get("/api/me")
+                if let again: Me = try? await API.shared.get("/api/me") { me = again }
+                changed()
             }
         case .mijoz:
             if let m: MijozMe = try? await API.shared.get("/api/mijoz/me") { mijozMe = m }
