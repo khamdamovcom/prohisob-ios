@@ -653,7 +653,8 @@ private struct NewEntForm: View {
     }
 
     private func autofocus() async {
-        guard model.amount == 0 else { return }   // VAQTINCHA: skrinshotda fokusni tekshirish
+        // skrinshot rejimida klaviatura formani yopmasin
+        guard session.shot == nil, model.amount == 0 else { return }
         try? await Task.sleep(for: .milliseconds(450))
         guard !Task.isCancelled, picking == nil else { return }
         focus = .amount

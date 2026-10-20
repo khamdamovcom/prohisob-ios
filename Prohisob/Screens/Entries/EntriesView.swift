@@ -77,6 +77,11 @@ struct EntriesView: View {
 
     var body: some View {
         List {
+            Section {
+                chipsBar
+            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
             summarySection
             listContent
         }
@@ -84,7 +89,6 @@ struct EntriesView: View {
         .listSectionSpacing(.compact)
         .scrollContentBackground(.hidden)
         .background(Palette.bg)
-        .modifier(EntTopBar(bar: chipsBar))
         .navigationTitle(isRoot ? "Yozuvlar" : (filter.title ?? "Yozuvlar"))
         .navigationBarTitleDisplayMode(isRoot ? .large : .inline)
         .searchable(text: $search, prompt: "Nima uchun yoki izoh bo‘yicha")
@@ -155,9 +159,10 @@ struct EntriesView: View {
                     typeChips
                 }
             }
-            .padding(.horizontal, Metrics.pad)
-            .padding(.vertical, 8)
+            .padding(.vertical, 2)
         }
+        // ro'yxat qatori ichida, lekin chiplar ekran chetigacha surilsin
+        .scrollClipDisabled()
     }
 
     private var periodMenu: some View {
@@ -584,17 +589,6 @@ private struct EntMenuChip: View {
         .overlay(Capsule().strokeBorder(active ? Color.clear : Palette.line, lineWidth: 0.5))
         .frame(maxWidth: 230)
         .contentShape(Capsule())
-    }
-}
-
-/// Chiplar paneli ro'yxat tepasida turadi (safeAreaBar katta sarlavhani xiralashtirgani uchun — safeAreaInset)
-private struct EntTopBar<Bar: View>: ViewModifier {
-    let bar: Bar
-
-    func body(content: Content) -> some View {
-        content.safeAreaInset(edge: .top, spacing: 0) {
-            bar.background(Palette.bg)
-        }
     }
 }
 
