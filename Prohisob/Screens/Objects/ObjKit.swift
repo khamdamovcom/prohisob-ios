@@ -4,18 +4,6 @@
 import SwiftUI
 import UIKit
 
-// TEKSHIRUV UCHUN VAQTINCHA (skrinshotda pastki bo'limlarni ko'rish) — olib tashlanadi
-@MainActor
-enum ObjDebug {
-    static var on: Bool { Session.shared.shot != nil }
-    static var dark: Bool { Session.shared.theme == .dark }
-    static var anchor: UnitPoint? {
-        guard on else { return nil }
-        return dark ? UnitPoint.bottom : UnitPoint.center
-    }
-    static var pushedShop = false
-}
-
 // MARK: - Server javobi
 
 /// POST/PUT javobi (obyekt / usta / magazin qatori) — bizga faqat id kerak (yo'q bo'lsa 0)

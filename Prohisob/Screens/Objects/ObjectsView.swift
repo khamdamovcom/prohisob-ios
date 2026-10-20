@@ -50,7 +50,6 @@ struct ObjectsView: View {
                 }
             }
             .task(id: session.dataVersion) { await load() }
-            .onAppear { if ObjDebug.on && ObjDebug.dark { segment = .hammasi } }
             .sheet(isPresented: $showNew) {
                 ObjForm(item: nil) { newId in
                     if let newId { router.push(.object(newId)) }

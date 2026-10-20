@@ -78,7 +78,6 @@ struct ObjectDetailView: View {
             }
             .refreshable { await load() }
             .modifier(ObjTitleTracker(shown: $titleShown, threshold: 70))
-            .defaultScrollAnchor(ObjDebug.anchor)
         } else if let error {
             ErrorState(error: error) { await load() }
         } else {
@@ -463,6 +462,11 @@ private struct ObjShareRow: View {
 
     private var share: Double { Double(amount) / Double(max(total, 1)) }
 
+    private var percent: String {
+        let p = Int((share * 100).rounded())
+        return p == 0 && amount > 0 ? "<1%" : "\(p)%"
+    }
+
     var body: some View {
         VStack(spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -470,7 +474,7 @@ private struct ObjShareRow: View {
                 Text(title).font(.subheadline).foregroundStyle(Palette.ink2).lineLimit(1)
                 Spacer(minLength: 8)
                 Text(Fmt.money(amount)).font(.money(15)).foregroundStyle(Palette.ink).lineLimit(1)
-                Text(verbatim: "\(Int((share * 100).rounded()))%")
+                Text(verbatim: percent)
                     .font(.caption.weight(.semibold))
                     .foregroundStyle(Palette.muted)
                     .frame(minWidth: 36, alignment: .trailing)
@@ -506,7 +510,11 @@ private struct ObjWorkersSection: View {
                 if let sp = ObjText.value(w.specialty) {
                     Text(sp).font(.caption).foregroundStyle(Palette.muted).lineLimit(1)
                 }
-                Text(detail(w)).font(.caption).foregroundStyle(Palette.ink2).lineLimit(1).minimumScaleFactor(0.85)
+                Text(detail(w))
+                    .font(.caption)
+                    .foregroundStyle(Palette.ink2)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             Spacer(minLength: 8)
             ObjDebtText(amount: w.qarz)

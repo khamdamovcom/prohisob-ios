@@ -72,7 +72,6 @@ struct ShopDetailView: View {
             }
             .refreshable { await load() }
             .modifier(ObjTitleTracker(shown: $titleShown, threshold: 56))
-            .defaultScrollAnchor(ObjDebug.on && ObjDebug.dark ? UnitPoint.bottom : nil)
         } else if let error {
             ErrorState(error: error) { await load() }
         } else {

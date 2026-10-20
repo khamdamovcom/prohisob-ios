@@ -146,10 +146,6 @@ struct ShopsView: View {
             let list: [Shop] = try await API.shared.get("/api/shops")
             items = list
             error = nil
-            if ObjDebug.on, !ObjDebug.pushedShop, let f = list.first(where: { $0.qarz > 0 }) {
-                ObjDebug.pushedShop = true
-                router.push(.shop(f.id))
-            }
         } catch is CancellationError {
         } catch {
             if items == nil { self.error = error } else { session.show(error.localizedDescription, error: true) }

@@ -72,7 +72,6 @@ struct WorkerDetailView: View {
             }
             .refreshable { await load() }
             .modifier(ObjTitleTracker(shown: $titleShown, threshold: 56))
-            .defaultScrollAnchor(ObjDebug.anchor)
         } else if let error {
             ErrorState(error: error) { await load() }
         } else {
@@ -284,8 +283,8 @@ private struct WrkObjectRow: View {
                 Text(detail)
                     .font(.caption)
                     .foregroundStyle(Palette.ink2)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 if let r = ObjText.range(row.birinchi, row.oxirgi) {
                     Text(r).font(.caption2).foregroundStyle(Palette.muted).lineLimit(1)
                 }
