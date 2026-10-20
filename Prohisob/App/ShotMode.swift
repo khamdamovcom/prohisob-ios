@@ -1,7 +1,8 @@
 // Skrinshot rejimi (CI, simulyator): ilova `-shot <ekran> [-theme dark]` bilan ochiladi, demo kabinetga o'zi kiradi
 // (login-parol muhitdan: SIMCTL_CHILD_DEMO_LOGIN / DEMO_PAROL / DEMO_MIJOZ_LOGIN / DEMO_MIJOZ_PAROL — repoda yo'q)
 // va kerakli ekranni ochadi. Face ID qulfi va maxfiylik pardasi bu rejimda ishlamaydi.
-// Ekranlar: home, objects, object, workers, worker, entries, entry, entry-new, entry-form, report, more, shops, client, client-object
+// Ekranlar: login, home, objects, object, workers, worker, entries, entry, entry-new, entry-form, report, more, shops, clients, users,
+// password, client, client-object
 import SwiftUI
 
 @MainActor
@@ -13,7 +14,8 @@ enum ShotMode {
             session.theme = t
         }
         let router = Router.shared
-        if shot.hasPrefix("client") {
+        if shot == "login" { return }           // kirish ekrani — demo hisobga kirmasdan
+        if shot.hasPrefix("client") && shot != "clients" {
             await session.shotLoginMijoz(login: env["DEMO_MIJOZ_LOGIN"] ?? "", password: env["DEMO_MIJOZ_PAROL"] ?? "")
             if shot == "client-object", let id = session.mijozMe?.obyektlar.first?.id {
                 router.clientPath.append(ClientRoute.object(id))
@@ -40,6 +42,9 @@ enum ShotMode {
         case "report": router.open(.report, in: .home)
         case "shops": router.open(.shops, in: .more)
         case "more": router.tab = .more
+        case "clients": router.open(.clients, in: .more)
+        case "users": router.open(.users, in: .more)
+        case "password": router.open(.password, in: .more)
         default: router.tab = .home
         }
     }

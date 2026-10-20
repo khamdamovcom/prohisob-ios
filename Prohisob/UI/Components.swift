@@ -87,7 +87,8 @@ struct Avatar: View {
     var soft: Color = Palette.brandSoft
 
     private var initials: String {
-        let parts = name.split(separator: " ").prefix(2)
+        // faqat harflar: «Demo (App Store)» → «DA», «“Nur Savdo” MChJ» → «NS»
+        let parts = name.split(separator: " ").map { $0.filter(\.isLetter) }.filter { !$0.isEmpty }.prefix(2)
         let s = parts.compactMap { $0.first.map(String.init) }.joined()
         return s.isEmpty ? "?" : s.uppercased()
     }

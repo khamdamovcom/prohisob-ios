@@ -280,7 +280,8 @@ final class Session {
     /// Ilova fonga o'tdi — qaytganda qulf so'raladi
     func scenePhaseChanged(_ phase: ScenePhase) {
         if phase == .background, lockEnabled, kind != nil, shot == nil { locked = true }
-        if phase == .active, kind != nil { Task { await loadConfig() } }
+        // qaytganda: versiya talabi va /api/me (kabinet to'xtatilgan, hisob nofaol qilingan bo'lsa — darhol bilinadi)
+        if phase == .active, kind != nil, !restoring { Task { await loadConfig(); await refresh() } }
     }
 
     // MARK: - Skrinshot rejimi uchun
