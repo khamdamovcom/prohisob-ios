@@ -316,6 +316,74 @@ async function review() {
   console.log('App Review: demo hisob va izoh yozildi; kontakt:', Object.values(contact).filter(Boolean).length ? "bor (sam.uz dan)" : "YO'Q — UI'da to'ldiring");
 }
 
+// ---------- beta: tashqi sinovchilar (jamoa a'zosi emas — faqat email; birinchi build Apple Beta App Review'dan o'tadi) ----------
+//   beta add <email> [ism]  — «Prohisob sinovchilar» guruhiga qo'shish (+ beta ma'lumotlari: demo hisob, izoh, aloqa)
+//   beta build              — oxirgi VALID buildni guruhga berish va Beta App Review'ga yuborish (sinovchilarga email shundan keyin)
+const BETA_GROUP = 'Prohisob sinovchilar';
+async function betaGroup(id) {
+  let g = (await get(`/v1/apps/${id}/betaGroups?limit=50`)).data.find((x) => !x.attributes.isInternalGroup && x.attributes.name === BETA_GROUP);
+  if (!g) {
+    g = (await api('POST', '/v1/betaGroups', { data: { type: 'betaGroups', attributes: { name: BETA_GROUP, publicLinkEnabled: false },
+      relationships: { app: { data: { type: 'apps', id } } } } })).data;
+    console.log('tashqi guruh yaratildi:', BETA_GROUP);
+  }
+  return g;
+}
+async function betaInfo(id) {
+  const demo = JSON.parse(fs.readFileSync(path.join(DIR, 'demo.json'), 'utf8'));
+  const v = await editableVersion(id);
+  const rd = (await get(`/v1/appStoreVersions/${v.id}/appStoreReviewDetail`).catch(() => null))?.data?.attributes || {};
+  const attrs = { contactFirstName: rd.contactFirstName, contactLastName: rd.contactLastName, contactPhone: rd.contactPhone, contactEmail: rd.contactEmail,
+    demoAccountRequired: true, demoAccountName: demo.prorab.login, demoAccountPassword: demo.prorab.parol,
+    notes: `Interface is in Uzbek. Foreman demo: ${demo.prorab.login} / ${demo.prorab.parol} ("Prorab / xodim" tab). Property owner demo: ${demo.mijoz.login} / ${demo.mijoz.parol} ("Obyekt egasi" tab). Sample data only.` };
+  const d = (await get(`/v1/apps/${id}/betaAppReviewDetail`)).data;
+  await api('PATCH', `/v1/betaAppReviewDetails/${d.id}`, { data: { type: 'betaAppReviewDetails', id: d.id, attributes: attrs } });
+  const locs = (await get(`/v1/apps/${id}/betaAppLocalizations`)).data;
+  const desc = { ru: 'Prohisob — учёт строительных объектов для прорабов: объекты, мастера, магазины, расходы и чеки. Интерфейс на узбекском.',
+    'en-US': 'Prohisob — construction bookkeeping for foremen: projects, workers, suppliers, expenses and receipts. Uzbek interface.' };
+  for (const [locale, description] of Object.entries(desc)) {
+    const a = { description, feedbackEmail: rd.contactEmail, marketingUrl: 'https://prohisob.com', privacyPolicyUrl: 'https://cabinet.prohisob.com/maxfiylik' };
+    const ex = locs.find((x) => x.attributes.locale === locale);
+    if (ex) await api('PATCH', `/v1/betaAppLocalizations/${ex.id}`, { data: { type: 'betaAppLocalizations', id: ex.id, attributes: a } });
+    else await api('POST', '/v1/betaAppLocalizations', { data: { type: 'betaAppLocalizations', attributes: { locale, ...a },
+      relationships: { app: { data: { type: 'apps', id } } } } });
+  }
+  console.log('beta ma\'lumotlari: demo hisob, izoh, tavsif (ru, en-US)');
+}
+async function beta(sub, a1, a2) {
+  const id = await appId();
+  if (!id) throw new Error("ilova yo'q");
+  const g = await betaGroup(id);
+  if (sub === 'add') {
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(a1 || '')) throw new Error('email kerak');
+    await betaInfo(id);
+    const have = (await get(`/v1/betaGroups/${g.id}/betaTesters?limit=200`)).data.map((t) => String(t.attributes.email || '').toLowerCase());
+    if (have.includes(a1.toLowerCase())) { console.log('allaqachon guruhda:', a1); return; }
+    await api('POST', '/v1/betaTesters', { data: { type: 'betaTesters', attributes: { email: a1, firstName: a2 || undefined },
+      relationships: { betaGroups: { data: [{ type: 'betaGroups', id: g.id }] } } } });
+    console.log('qo\'shildi:', a1, '— taklif emaili build Beta App Review\'dan o\'tgach keladi (beta build)');
+  } else if (sub === 'build') {
+    const b = (await get(`/v1/builds?filter[app]=${id}&filter[processingState]=VALID&sort=-uploadedDate&limit=1`)).data[0];
+    if (!b) throw new Error("tayyor build yo'q");
+    const bl = (await get(`/v1/builds/${b.id}/betaBuildLocalizations`)).data;
+    const whatsNew = 'Birinchi versiya: obyektlar, ustalar, magazinlar, yozuvlar va cheklar, hisobot va Excel, obyekt egasi rejimi. Kamchilik topsangiz — TestFlight orqali skrinshot bilan yuboring.';
+    for (const locale of ['ru', 'en-US']) {
+      const ex = bl.find((x) => x.attributes.locale === locale);
+      if (ex) await api('PATCH', `/v1/betaBuildLocalizations/${ex.id}`, { data: { type: 'betaBuildLocalizations', id: ex.id, attributes: { whatsNew } } });
+      else await api('POST', '/v1/betaBuildLocalizations', { data: { type: 'betaBuildLocalizations', attributes: { locale, whatsNew },
+        relationships: { build: { data: { type: 'builds', id: b.id } } } } });
+    }
+    await api('POST', `/v1/betaGroups/${g.id}/relationships/builds`, { data: [{ type: 'builds', id: b.id }] }).catch((e) => console.log('guruhga:', e.message));
+    try {
+      await api('POST', '/v1/betaAppReviewSubmissions', { data: { type: 'betaAppReviewSubmissions', relationships: { build: { data: { type: 'builds', id: b.id } } } } });
+      console.log(`build ${b.attributes.version} → Beta App Review'ga yuborildi`);
+    } catch (e) { console.log('Beta App Review:', e.message); }
+  } else {
+    const ts = (await get(`/v1/betaGroups/${g.id}/betaTesters?limit=200`)).data;
+    console.log(`${BETA_GROUP}: ${ts.map((t) => `${t.attributes.email} (${t.attributes.state || '-'})`).join(', ') || "bo'sh"}`);
+  }
+}
+
 // ---------- status ----------
 async function status() {
   const id = await appId();
@@ -326,7 +394,7 @@ async function status() {
   console.log('versiyalar:', vs.map((v) => `${v.attributes.versionString} ${v.attributes.appStoreState || v.attributes.appVersionState}`).join(' | '));
 }
 
-const [cmd, arg] = process.argv.slice(2);
-const run = { check, signing: () => signing(arg), metadata, setup, review, screenshots: () => screenshots(arg), testflight, attach, submit, status }[cmd];
-if (!run) { console.log('buyruqlar: check | signing <TEAM_ID> | metadata | setup | review | screenshots <papka> | testflight | attach | submit | status'); process.exit(1); }
+const [cmd, arg, arg2, arg3] = process.argv.slice(2);
+const run = { check, signing: () => signing(arg), metadata, setup, review, beta: () => beta(arg, arg2, arg3), screenshots: () => screenshots(arg), testflight, attach, submit, status }[cmd];
+if (!run) { console.log('buyruqlar: check | signing <TEAM_ID> | metadata | setup | review | beta add <email> [ism] | beta build | beta | screenshots <papka> | testflight | attach | submit | status'); process.exit(1); }
 run().catch((e) => { console.error('XATO:', e.message); process.exit(1); });
