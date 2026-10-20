@@ -1,0 +1,112 @@
+{
+    "magazin": {
+        "id": 6,
+        "name": "Elektro Savdo",
+        "phone": "+998 71 200 20 20",
+        "address": "Malika bozori",
+        "note": "",
+        "active": 1,
+        "created_at": "2026-10-20 10:16:03",
+        "tenant_id": 3
+    },
+    "summary": {
+        "olingan": 9400000,
+        "tolangan": 6300000,
+        "qarz": 3100000
+    },
+    "obyektlar": [
+        {
+            "id": 3,
+            "name": "Yunusobod, 14-kvartal 7-uy",
+            "olingan": 6300000,
+            "tolangan": 6300000,
+            "oxirgi": "2026-08-11",
+            "qarz": 0
+        },
+        {
+            "id": 4,
+            "name": "Chilonzor 9, hovli",
+            "olingan": 3100000,
+            "tolangan": 0,
+            "oxirgi": "2026-09-25",
+            "qarz": 3100000
+        }
+    ],
+    "ustalar": [
+        {
+            "id": 4,
+            "name": "Bobur usta",
+            "summa": 6300000,
+            "soni": 1,
+            "oxirgi": "2026-08-11"
+        }
+    ],
+    "tarix": [
+        {
+            "id": 178,
+            "type": "xarid",
+            "object_id": 4,
+            "worker_id": null,
+            "shop_id": 6,
+            "amount": 3100000,
+            "date": "2026-09-25",
+            "title": "Avtomatlar va shchit",
+            "note": "IEK",
+            "link_id": null,
+            "created_by": 4,
+            "source": "web",
+            "created_at": "2026-10-20 10:16:03",
+            "tenant_id": 3,
+            "object_name": "Chilonzor 9, hovli",
+            "worker_name": null,
+            "shop_name": "Elektro Savdo",
+            "user_name": "Demo prorab",
+            "username": "demo",
+            "cheklar": 0
+        },
+        {
+            "id": 154,
+            "type": "magazin_tolov",
+            "object_id": 3,
+            "worker_id": 4,
+            "shop_id": 6,
+            "amount": 6300000,
+            "date": "2026-08-11",
+            "title": "Xarid uchun tolov",
+            "note": "VVG 3×2.5 — 300 m",
+            "link_id": 153,
+            "created_by": 4,
+            "source": "web",
+            "created_at": "2026-10-20 10:16:03",
+            "tenant_id": 3,
+            "object_name": "Yunusobod, 14-kvartal 7-uy",
+            "worker_name": "Bobur usta",
+            "shop_name": "Elektro Savdo",
+            "user_name": "Demo prorab",
+            "username": "demo",
+            "cheklar": 0
+        },
+        {
+            "id": 153,
+            "type": "xarid",
+            "object_id": 3,
+            "worker_id": 4,
+            "shop_id": 6,
+            "amount": 6300000,
+            "date": "2026-08-11",
+            "title": "Kabel va rozetkalar",
+            "note": "VVG 3×2.5 — 300 m",
+            "link_id": null,
+            "created_by": 4,
+            "source": "web",
+            "created_at": "2026-10-20 10:16:03",
+            "tenant_id": 3,
+            "object_name": "Yunusobod, 14-kvartal 7-uy",
+            "worker_name": "Bobur usta",
+            "shop_name": "Elektro Savdo",
+            "user_name": "Demo prorab",
+            "username": "demo",
+            "cheklar": 0
+        }
+    ]
+}

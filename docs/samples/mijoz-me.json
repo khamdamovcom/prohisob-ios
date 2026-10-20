@@ -1,0 +1,36 @@
+{
+    "mijoz": {
+        "id": 3,
+        "name": "Akmal Karimov",
+        "login": "demo_mijoz",
+        "phone": "+998 90 111 22 33"
+    },
+    "prorab": {
+        "name": "Demo (App Store)",
+        "phone": "+998 90 000 00 00"
+    },
+    "obyektlar": [
+        {
+            "id": 3,
+            "name": "Yunusobod, 14-kvartal 7-uy",
+            "address": "Toshkent, Yunusobod tumani",
+            "status": "faol",
+            "start_date": "2026-07-28",
+            "end_date": "",
+            "kirim": 125000000,
+            "kirim_yalpi": 125000000,
+            "qaytarish": 0,
+            "jami_xarajat": 63410000,
+            "qoldiq": 61590000,
+            "shartnoma": 180000000,
+            "qolgan_tolov": 55000000,
+            "tarkib": {
+                "usta_tolov": 31000000,
+                "magazin_tolov": 29900000,
+                "ovqat": 1160000,
+                "obyekt_xarajat": 1200000,
+                "xarajat": 150000
+            }
+        }
+    ]
+}

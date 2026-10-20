@@ -1,0 +1,82 @@
+# Prohisob iOS: Mac'da yig'ish (GitHub bulutli macOS). Har push (istalgan branch) — simulyator uchun yig'ish (kompilyatsiya tekshiruvi);
+# qo'lda: shots — App Store skrinshotlari (demo kabinet), release — App Store Connect'ga yuklash (TestFlight). Batafsil: README.md
+# pull_request trigger ataylab yo'q: begona fork'lar maxfiy kalitlarga ham, runner'ga ham yetib kelmaydi.
+name: iOS
+
+on:
+  push:
+    paths: ['Prohisob/**', 'project.yml', '.github/workflows/ios.yml', 'scripts/**']
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: 'build | shots | release'
+        type: choice
+        options: [build, shots, release]
+        default: build
+      list:
+        description: 'Skrinshotlar ro‘yxati (bo‘sh — App Store to‘plami), masalan: home=bosh entry-new=yozuv'
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ios-${{ github.ref }}-${{ inputs.mode || 'build' }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 60
+    env:
+      MODE: ${{ inputs.mode || 'build' }}
+      HOMEBREW_NO_AUTO_UPDATE: '1'
+      HOMEBREW_NO_INSTALL_CLEANUP: '1'
+    steps:
+      - uses: actions/checkout@v7
+      - name: Xcode va vositalar
+        run: |
+          xcodebuild -version
+          command -v xcodegen >/dev/null || brew install xcodegen
+          command -v xcbeautify >/dev/null || brew install xcbeautify
+          xcodegen generate
+      - name: Yig'ish (simulyator)
+        if: env.MODE == 'build'
+        run: |
+          set -o pipefail
+          xcodebuild -project Prohisob.xcodeproj -scheme Prohisob -configuration Debug -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO build 2>&1 | tee build.log | xcbeautify --renderer github-actions
+      - name: Skrinshotlar
+        if: env.MODE == 'shots'
+        env:
+          SHOT_LIST: ${{ inputs.list }}
+          DEMO_LOGIN: ${{ secrets.DEMO_LOGIN }}
+          DEMO_PAROL: ${{ secrets.DEMO_PAROL }}
+          DEMO_MIJOZ_LOGIN: ${{ secrets.DEMO_MIJOZ_LOGIN }}
+          DEMO_MIJOZ_PAROL: ${{ secrets.DEMO_MIJOZ_PAROL }}
+        run: bash scripts/shots.sh
+      - name: App Store Connect'ga yuklash
+        if: env.MODE == 'release'
+        env:
+          TEAM_ID: ${{ vars.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+          DIST_P12_B64: ${{ secrets.DIST_P12_B64 }}
+          DIST_P12_PASS: ${{ secrets.DIST_P12_PASS }}
+          PROFILE_B64: ${{ secrets.PROFILE_B64 }}
+          BUILD_NUMBER: ${{ github.run_number }}
+        run: bash scripts/release.sh
+      - uses: actions/upload-artifact@v7
+        if: env.MODE == 'shots'
+        with:
+          name: shots
+          path: shots/
+          retention-days: 7
+      - uses: actions/upload-artifact@v7
+        if: failure()
+        with:
+          name: build-log
+          path: build.log
+          retention-days: 3
+          if-no-files-found: ignore

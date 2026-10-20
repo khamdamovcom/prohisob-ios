@@ -1,0 +1,12 @@
+*.xcodeproj/
+build/
+DerivedData/
+shots/
+*.p8
+*.p12
+*.mobileprovision
+*.cer
+*.key
+*.pem
+.DS_Store
+node_modules/

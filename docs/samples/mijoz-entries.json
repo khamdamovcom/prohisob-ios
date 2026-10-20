@@ -1,0 +1,53 @@
+{
+    "rows": [
+        {
+            "id": 171,
+            "type": "usta_tolov",
+            "nomi": "Ustaga berildi",
+            "amount": 3000000,
+            "date": "2026-10-17",
+            "title": "Kafel uchun",
+            "note": "Karta",
+            "worker_name": "Aziz aka",
+            "shop_name": "",
+            "cheklar": 0
+        },
+        {
+            "id": 170,
+            "type": "ovqat",
+            "nomi": "Obed (ovqat)",
+            "amount": 360000,
+            "date": "2026-10-14",
+            "title": "Obed",
+            "note": "5 kishi",
+            "worker_name": "",
+            "shop_name": "",
+            "cheklar": 0
+        },
+        {
+            "id": 169,
+            "type": "kirim",
+            "nomi": "Siz bergan pul",
+            "amount": 35000000,
+            "date": "2026-10-06",
+            "title": "3-to‘lov",
+            "note": "Naqd",
+            "worker_name": "",
+            "shop_name": "",
+            "cheklar": 0
+        },
+        {
+            "id": 168,
+            "type": "usta_tolov",
+            "nomi": "Ustaga berildi",
+            "amount": 4000000,
+            "date": "2026-09-29",
+            "title": "Avans",
+            "note": "Naqd",
+            "worker_name": "Sardor",
+            "shop_name": "",
+            "cheklar": 0
+        }
+    ],
+    "total": 17
+}

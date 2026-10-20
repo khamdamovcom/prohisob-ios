@@ -1,0 +1,23 @@
+{
+    "id": 182,
+    "type": "xarajat",
+    "object_id": 4,
+    "worker_id": null,
+    "shop_id": null,
+    "amount": 200000,
+    "date": "2026-10-18",
+    "title": "Telefon va internet",
+    "note": "Oyiga",
+    "link_id": null,
+    "created_by": 4,
+    "source": "web",
+    "created_at": "2026-10-20 10:16:03",
+    "tenant_id": 3,
+    "object_name": "Chilonzor 9, hovli",
+    "worker_name": null,
+    "shop_name": null,
+    "user_name": "Demo prorab",
+    "username": "demo",
+    "cheklar": [],
+    "bogliq": []
+}

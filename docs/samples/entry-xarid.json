@@ -1,0 +1,23 @@
+{
+    "id": 178,
+    "type": "xarid",
+    "object_id": 4,
+    "worker_id": null,
+    "shop_id": 6,
+    "amount": 3100000,
+    "date": "2026-09-25",
+    "title": "Avtomatlar va shchit",
+    "note": "IEK",
+    "link_id": null,
+    "created_by": 4,
+    "source": "web",
+    "created_at": "2026-10-20 10:16:03",
+    "tenant_id": 3,
+    "object_name": "Chilonzor 9, hovli",
+    "worker_name": null,
+    "shop_name": "Elektro Savdo",
+    "user_name": "Demo prorab",
+    "username": "demo",
+    "cheklar": [],
+    "bogliq": []
+}

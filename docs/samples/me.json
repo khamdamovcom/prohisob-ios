@@ -1,0 +1,17 @@
+{
+    "user": {
+        "id": 4,
+        "username": "demo",
+        "name": "Demo prorab",
+        "role": "prorab",
+        "active": 1,
+        "tenant_id": 3
+    },
+    "company": "ProHisob",
+    "kabinet": {
+        "id": 3,
+        "name": "Demo (App Store)",
+        "active": true
+    },
+    "kabinetlar": []
+}
