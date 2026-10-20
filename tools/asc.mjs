@@ -4,6 +4,9 @@
 //   signing <TEAM_ID>     — bundle ID (com.prohisob.app), tarqatish sertifikati (mavjudi qayta ishlatiladi), App Store profili → GitHub secrets
 //   metadata              — App Store sahifasi matnlari (appstore/<til>/*.txt), toifa, mualliflik
 //   screenshots <papka>   — skrinshotlar (<papka>/phone/*.png → en-US va ru, ilova o'zbekcha)
+//   setup                 — kontent huquqi, bepul narx, mavjudlik (Xitoysiz)
+//   review                — App Review: demo hisoblar (demo.json) va izoh, kontakt sam.uz dan
+//   testflight | attach | submit — ichki sinov guruhi, buildni versiyaga biriktirish, ko'rib chiqishga yuborish (faqat egasi roziligi bilan)
 //   status                — buildlar va versiya holati
 // Kalit va sertifikatlar repozitoriyga tushmaydi: /root/zaxira/prohisob-ios (700).
 import fs from 'node:fs';
@@ -253,6 +256,66 @@ async function submit() {
   console.log(`yuborildi: ${v.attributes.versionString} — holat ${done.attributes.state}`);
 }
 
+// ---------- setup: kontent huquqi, bepul narx, mavjudlik (Xitoysiz — ICP talab qilinadi) ----------
+async function setup() {
+  const id = await appId();
+  if (!id) throw new Error("ilova yo'q");
+  await api('PATCH', `/v1/apps/${id}`, { data: { type: 'apps', id, attributes: { contentRightsDeclaration: 'DOES_NOT_USE_THIRD_PARTY_CONTENT' } } });
+  console.log('kontent huquqi: uchinchi tomon kontenti yo\'q');
+  // narx: bepul (asosiy hudud AQSH)
+  const pts = await get(`/v1/apps/${id}/appPricePoints?filter[territory]=USA&limit=200`);
+  const free = pts.data.find((x) => Number(x.attributes.customerPrice) === 0);
+  if (!free) throw new Error('bepul narx nuqtasi topilmadi');
+  try {
+    await api('POST', '/v1/appPriceSchedules', { data: { type: 'appPriceSchedules', relationships: {
+      app: { data: { type: 'apps', id } }, baseTerritory: { data: { type: 'territories', id: 'USA' } },
+      manualPrices: { data: [{ type: 'appPrices', id: '${p0}' }] } } },
+    included: [{ type: 'appPrices', id: '${p0}', attributes: { startDate: null }, relationships: { appPricePoint: { data: { type: 'appPricePoints', id: free.id } } } }] });
+    console.log('narx: bepul');
+  } catch (e) { console.log('narx:', e.message); }
+  // mavjudlik: barcha hududlar, Xitoydan tashqari; yangi hududlarga ham
+  const terr = (await get('/v1/territories?limit=200')).data.map((t) => t.id);
+  const inc = terr.map((t, i) => ({ type: 'territoryAvailabilities', id: `\${t${i}}`, attributes: { available: t !== 'CHN' },
+    relationships: { territory: { data: { type: 'territories', id: t } } } }));
+  try {
+    await api('POST', '/v2/appAvailabilities', { data: { type: 'appAvailabilities', attributes: { availableInNewTerritories: true },
+      relationships: { app: { data: { type: 'apps', id } }, territoryAvailabilities: { data: inc.map((x) => ({ type: x.type, id: x.id })) } } }, included: inc });
+    console.log('mavjudlik:', terr.length - 1, 'hudud (Xitoysiz)');
+  } catch (e) { console.log('mavjudlik:', e.message); }
+}
+
+// ---------- review: App Review uchun demo hisoblar va izoh (parollar /root/zaxira/prohisob-ios/demo.json dan, repoga tushmaydi) ----------
+async function review() {
+  const id = await appId();
+  if (!id) throw new Error("ilova yo'q");
+  const demo = JSON.parse(fs.readFileSync(path.join(DIR, 'demo.json'), 'utf8'));
+  const v = await editableVersion(id);
+  // aloqa ma'lumoti — jamoaning boshqa ilovasidagi (sam.uz) App Review kontaktidan
+  let contact = {};
+  const sam = (await get('/v1/apps?filter[bundleId]=uz.sam.app&limit=1')).data[0];
+  if (sam) {
+    const sv = (await get(`/v1/apps/${sam.id}/appStoreVersions?filter[platform]=IOS&limit=1`)).data[0];
+    const rd = sv ? (await get(`/v1/appStoreVersions/${sv.id}/appStoreReviewDetail`).catch(() => null))?.data : null;
+    if (rd) contact = Object.fromEntries(['contactFirstName', 'contactLastName', 'contactPhone', 'contactEmail'].map((k) => [k, rd.attributes[k]]));
+  }
+  const notes = [
+    'Prohisob is a B2B bookkeeping app for construction foremen in Uzbekistan. The interface is in Uzbek.',
+    'Accounts are created by us for each foreman (no in-app sign-up, no purchases). The demo workspace below contains sample data only.',
+    '',
+    `1) Foreman account — on the sign-in screen keep the "Prorab / xodim" tab: login ${demo.prorab.login}, password ${demo.prorab.parol}.`,
+    '   Tabs: Asosiy (dashboard), Obyektlar (projects), Ustalar (workers), Yozuvlar (records), Yana (more). The "+ Yangi yozuv" button adds a record; a receipt photo can be attached from the camera.',
+    `2) Property owner (client) account — choose the "Obyekt egasi" tab: login ${demo.mijoz.login}, password ${demo.mijoz.parol}. It shows a read-only view of the owner's own project.`,
+    '',
+    'Camera/photos are used only to attach receipts; Face ID is an optional app lock (Yana → Xavfsizlik). Feel free to add or delete records in the demo workspace.',
+  ].join('\n');
+  const attrs = { ...contact, demoAccountRequired: true, demoAccountName: demo.prorab.login, demoAccountPassword: demo.prorab.parol, notes };
+  const ex = (await get(`/v1/appStoreVersions/${v.id}/appStoreReviewDetail`).catch(() => null))?.data;
+  if (ex) await api('PATCH', `/v1/appStoreReviewDetails/${ex.id}`, { data: { type: 'appStoreReviewDetails', id: ex.id, attributes: attrs } });
+  else await api('POST', '/v1/appStoreReviewDetails', { data: { type: 'appStoreReviewDetails', attributes: attrs,
+    relationships: { appStoreVersion: { data: { type: 'appStoreVersions', id: v.id } } } } });
+  console.log('App Review: demo hisob va izoh yozildi; kontakt:', Object.values(contact).filter(Boolean).length ? "bor (sam.uz dan)" : "YO'Q — UI'da to'ldiring");
+}
+
 // ---------- status ----------
 async function status() {
   const id = await appId();
@@ -264,6 +327,6 @@ async function status() {
 }
 
 const [cmd, arg] = process.argv.slice(2);
-const run = { check, signing: () => signing(arg), metadata, screenshots: () => screenshots(arg), testflight, attach, submit, status }[cmd];
-if (!run) { console.log('buyruqlar: check | signing <TEAM_ID> | metadata | screenshots <papka> | testflight | attach | submit | status'); process.exit(1); }
+const run = { check, signing: () => signing(arg), metadata, setup, review, screenshots: () => screenshots(arg), testflight, attach, submit, status }[cmd];
+if (!run) { console.log('buyruqlar: check | signing <TEAM_ID> | metadata | setup | review | screenshots <papka> | testflight | attach | submit | status'); process.exit(1); }
 run().catch((e) => { console.error('XATO:', e.message); process.exit(1); });

@@ -1,0 +1,23 @@
+Prohisob is construction and renovation bookkeeping for foremen. Every sum of every project in one place: how much the client paid, how much went to workers and suppliers, who is still owed money, and how much cash is on hand.
+
+The app interface is in Uzbek.
+
+KEY FEATURES
+• Projects: client payments, real expenses, cash on hand, progress against the contract
+• Workers: earned, paid, outstanding debt — per worker and per project
+• Suppliers: materials taken, paid, debt (including purchases on credit)
+• Add a record in 10 seconds: amount, project, worker, note and a receipt photo from the camera
+• Receipts: photos and PDFs attached to every record
+• Reports by month and project, charts, Excel export
+• Net profit for completed projects
+
+FOR YOUR TEAM AND YOUR CLIENT
+• Employees add records and can delete only their own
+• The property owner signs in with their own login and sees only their project: what they paid, where the money went (with receipts) and the balance
+
+SECURITY
+• A separate workspace for every foreman
+• Face ID app lock
+• No ads, no tracking
+
+The app works together with the cabinet.prohisob.com dashboard and the Telegram bot — the data is the same everywhere. An account is required: message us on Telegram @khamdamov and we will help you get started.
