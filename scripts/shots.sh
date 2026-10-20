@@ -1,7 +1,8 @@
 #!/bin/bash
 # App Store skrinshotlari (CI, macOS): ilovani simulyatorda -shot rejimida ochib rasmga oladi — iPhone 6.9" (1320×2868).
 # Ilova demo kabinetga o'zi kiradi: login-parol GitHub secrets → SIMCTL_CHILD_* (ilova muhitiga o'tadi, logga chiqmaydi).
-# Natija: shots/phone/<n>-<nom>.png. Boshqa ro'yxat: SHOT_LIST="home=bosh entry-new=yozuv" (ekran=nom), THEME=dark
+# Natija: shots/phone/<n>-<nom>.png. Boshqa ro'yxat: SHOT_LIST="home=bosh entry-new=yozuv object=obyekt-dark" (ekran=nom;
+# nom «dark» yoki «-dark» bilan tugasa — qorong'i mavzu). Ekranlar ro'yxati: Prohisob/App/ShotMode.swift
 set -euo pipefail
 cd "$(dirname "$0")/.."
 OUT=${OUT:-shots}
@@ -39,7 +40,7 @@ xcrun simctl install "$UDID" "$APP"
 xcrun simctl launch "$UDID" com.prohisob.app -shot home > /dev/null; sleep ${WARMUP:-25}
 mkdir -p "$OUT/phone"
 for i in "${!SHOTS[@]}"; do
-  theme=${THEME:-light}; [ "${NAMES[$i]}" = dark ] && theme=dark
+  theme=${THEME:-light}; case "${NAMES[$i]}" in dark|*-dark) theme=dark ;; esac
   xcrun simctl terminate "$UDID" com.prohisob.app 2> /dev/null || true
   xcrun simctl launch "$UDID" com.prohisob.app -shot "${SHOTS[$i]}" -theme "$theme" > /dev/null
   sleep "$WAIT"
