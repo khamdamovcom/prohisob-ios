@@ -4,6 +4,18 @@
 import SwiftUI
 import UIKit
 
+// TEKSHIRUV UCHUN VAQTINCHA (skrinshotda pastki bo'limlarni ko'rish) — olib tashlanadi
+@MainActor
+enum ObjDebug {
+    static var on: Bool { Session.shared.shot != nil }
+    static var dark: Bool { Session.shared.theme == .dark }
+    static var anchor: UnitPoint? {
+        guard on else { return nil }
+        return dark ? UnitPoint.bottom : UnitPoint.center
+    }
+    static var pushedShop = false
+}
+
 // MARK: - Server javobi
 
 /// POST/PUT javobi (obyekt / usta / magazin qatori) — bizga faqat id kerak (yo'q bo'lsa 0)
@@ -93,6 +105,32 @@ enum ObjExport {
     /// GET /api/export.xlsx?<key>=<id> → vaqtinchalik fayl
     static func excel(_ key: String, _ id: Int, title: String) async throws -> URL {
         try await API.shared.download("/api/export.xlsx", query: [key: String(id)], filename: fileName(title))
+    }
+}
+
+// MARK: - Sahifa sarlavhasi
+
+/// Sahifadagi katta nom ko'rinib turganda tepadagi (navigatsiya) nom yashiriladi — takrorlanmasin; pastga aylantirilsa chiqadi.
+/// iOS 18+ (onScrollGeometryChange); iOS 17 da nom doim ko'rinadi.
+struct ObjTitleTracker: ViewModifier {
+    @Binding var shown: Bool
+    var threshold: CGFloat = 70
+
+    static var tracks: Bool {
+        if #available(iOS 18.0, *) { return true } else { return false }
+    }
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if #available(iOS 18.0, *) {
+            content.onScrollGeometryChange(for: Bool.self) { g in
+                g.contentOffset.y + g.contentInsets.top > threshold
+            } action: { _, v in
+                shown = v
+            }
+        } else {
+            content
+        }
     }
 }
 

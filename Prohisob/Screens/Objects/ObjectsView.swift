@@ -50,6 +50,7 @@ struct ObjectsView: View {
                 }
             }
             .task(id: session.dataVersion) { await load() }
+            .onAppear { if ObjDebug.on && ObjDebug.dark { segment = .hammasi } }
             .sheet(isPresented: $showNew) {
                 ObjForm(item: nil) { newId in
                     if let newId { router.push(.object(newId)) }
@@ -181,7 +182,7 @@ private struct ObjCardHeader: View {
                     ObjIconLine(symbol: "person.fill", text: owner)
                 }
                 if let a = ObjText.value(item.address) {
-                    ObjIconLine(symbol: "mappin.and.ellipse", text: a)
+                    ObjIconLine(symbol: "mappin", text: a)
                 }
             }
             Spacer(minLength: 6)

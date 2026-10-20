@@ -17,6 +17,7 @@ struct ShopDetailView: View {
     @State private var confirmDelete = false
     @State private var alertText: String?
     @State private var gone = false
+    @State private var titleShown = !ObjTitleTracker.tracks
 
     private var name: String { data?.magazin.name ?? "Magazin" }
 
@@ -24,7 +25,7 @@ struct ShopDetailView: View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Palette.bg)
-            .navigationTitle(name)
+            .navigationTitle(data == nil || titleShown ? name : "")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { toolbarMenu }
@@ -70,6 +71,8 @@ struct ShopDetailView: View {
                 .padding(.bottom, 28)
             }
             .refreshable { await load() }
+            .modifier(ObjTitleTracker(shown: $titleShown, threshold: 56))
+            .defaultScrollAnchor(ObjDebug.on && ObjDebug.dark ? UnitPoint.bottom : nil)
         } else if let error {
             ErrorState(error: error) { await load() }
         } else {
@@ -178,7 +181,7 @@ private struct ShpHeaderCard: View {
                             if !shop.active { ObjTag(text: "faol emas") }
                         }
                         if let a = ObjText.value(shop.address) {
-                            ObjIconLine(symbol: "mappin.and.ellipse", text: a, font: .subheadline, lines: 2)
+                            ObjIconLine(symbol: "mappin", text: a, font: .subheadline, lines: 2)
                         }
                         if let p = ObjText.value(shop.phone) { PhoneButton(phone: p) }
                     }

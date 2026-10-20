@@ -17,6 +17,7 @@ struct WorkerDetailView: View {
     @State private var confirmDelete = false
     @State private var alertText: String?
     @State private var gone = false
+    @State private var titleShown = !ObjTitleTracker.tracks
 
     private var name: String { data?.usta.name ?? "Usta" }
 
@@ -24,7 +25,7 @@ struct WorkerDetailView: View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Palette.bg)
-            .navigationTitle(name)
+            .navigationTitle(data == nil || titleShown ? name : "")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { toolbarMenu }
@@ -70,6 +71,8 @@ struct WorkerDetailView: View {
                 .padding(.bottom, 28)
             }
             .refreshable { await load() }
+            .modifier(ObjTitleTracker(shown: $titleShown, threshold: 56))
+            .defaultScrollAnchor(ObjDebug.anchor)
         } else if let error {
             ErrorState(error: error) { await load() }
         } else {

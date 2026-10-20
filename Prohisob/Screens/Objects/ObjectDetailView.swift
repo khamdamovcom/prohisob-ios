@@ -17,6 +17,7 @@ struct ObjectDetailView: View {
     @State private var confirmDelete = false
     @State private var alertText: String?
     @State private var gone = false
+    @State private var titleShown = !ObjTitleTracker.tracks
 
     private var name: String { data?.obj.name ?? "Obyekt" }
 
@@ -24,7 +25,7 @@ struct ObjectDetailView: View {
         content
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(Palette.bg)
-            .navigationTitle(name)
+            .navigationTitle(data == nil || titleShown ? name : "")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) { toolbarMenu }
@@ -76,6 +77,8 @@ struct ObjectDetailView: View {
                 .padding(.bottom, 28)
             }
             .refreshable { await load() }
+            .modifier(ObjTitleTracker(shown: $titleShown, threshold: 70))
+            .defaultScrollAnchor(ObjDebug.anchor)
         } else if let error {
             ErrorState(error: error) { await load() }
         } else {
@@ -204,21 +207,19 @@ private struct ObjHeaderCard: View {
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 12) {
-                HStack(alignment: .top, spacing: 10) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text(obj.name)
-                            .font(.title2.weight(.bold))
-                            .foregroundStyle(Palette.ink)
-                            .fixedSize(horizontal: false, vertical: true)
-                        if let a = ObjText.value(obj.address) {
-                            ObjIconLine(symbol: "mappin.and.ellipse", text: a, font: .subheadline, lines: 2)
-                        }
-                        if let d = dates {
-                            ObjIconLine(symbol: "calendar", text: d, font: .subheadline)
-                        }
-                    }
-                    Spacer(minLength: 8)
+                VStack(alignment: .leading, spacing: 6) {
                     ObjStatusMenu(status: status, current: obj.statusValue)
+                        .padding(.bottom, 2)
+                    Text(obj.name)
+                        .font(.title2.weight(.bold))
+                        .foregroundStyle(Palette.ink)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let a = ObjText.value(obj.address) {
+                        ObjIconLine(symbol: "mappin", text: a, font: .subheadline, lines: 2)
+                    }
+                    if let d = dates {
+                        ObjIconLine(symbol: "calendar", text: d, font: .subheadline)
+                    }
                 }
                 if ObjText.value(obj.ownerName) != nil || ObjText.value(obj.ownerPhone) != nil {
                     Divider()
