@@ -13,8 +13,11 @@ Server: `https://cabinet.prohisob.com` (kodi serverda `/opt/prorab`, bu repoda e
 | `GET /api/me` | `{user, company, kabinet, kabinetlar}` (`kabinetlar` faqat egasiga) |
 | `POST /api/parol` `{eski, yangi}` | parol almashadi, boshqa qurilmalar chiqadi |
 | `GET /api/app/config` | `{ios:{minBuild, latestBuild, storeUrl}, sayt, yordam}` (sessiyasiz) |
+| `POST /api/hisob/ochirish` `{parol}` | xodim → `{ochirildi, xabar}` (darhol); prorab → `{sorov, xabar}` (kabinet 7 kunda, egasiga Telegram); egasi — 400 |
+| `POST /api/mijoz/hisob/ochirish` `{parol}` | obyekt egasi hisobi darhol o'chadi → `{ochirildi, xabar}` |
 
-Token: `Authorization: Bearer <64 hex>`. Egasi kabinet tanlasa: `X-Kabinet: <id>`. 401 → sessiya tugagan (API o'zi chiqaradi).
+Token: `Authorization: Bearer <64 hex>`. Egasi kabinet tanlasa: `X-Kabinet: <id>` (noto'g'ri yoki to'xtatilgan bo'lsa — 409, faqat
+`/api/me` o'z kabinetini qaytaradi). 401 → sessiya tugagan (API o'zi chiqaradi). Nofaol qilingan hisobning sessiyalari darhol yopiladi.
 
 ## Prorab / xodim
 | | |
