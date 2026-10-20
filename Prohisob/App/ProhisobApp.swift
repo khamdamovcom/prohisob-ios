@@ -23,6 +23,12 @@ struct RootView: View {
     @Environment(Session.self) private var session
     @Environment(\.scenePhase) private var phase
 
+    /// Qulf yoki (ilova faol bo'lmaganda) maxfiylik pardasi kerakmi — ilovalar oynasidagi suratda summalar ko'rinmasin
+    private var shielded: Bool {
+        guard session.shot == nil, !session.restoring || session.locked else { return false }
+        return session.locked || (phase != .active && session.kind != nil)
+    }
+
     var body: some View {
         ZStack {
             Group {
@@ -31,7 +37,8 @@ struct RootView: View {
                 } else if session.updateRequired {
                     UpdateRequiredView()
                 } else if session.kind == .user {
-                    MainTabs()
+                    // kabinet almashsa — bo'limlarning ichki holati (filtrlar, eski raqamlar) ham yangidan
+                    MainTabs().id(session.kabinetId ?? 0)
                 } else if session.kind == .mijoz {
                     ClientRootView()
                 } else {
@@ -39,21 +46,21 @@ struct RootView: View {
                 }
             }
             .transition(.opacity)
-
-            if session.locked && !session.restoring {
-                LockView().transition(.opacity).zIndex(2)
-            } else if phase != .active && session.kind != nil && session.shot == nil {
-                // ilovalar oynasidagi (app switcher) suratda summalar ko'rinmasin
-                PrivacyCover().zIndex(3)
-            }
         }
         .background(Palette.bg.ignoresSafeArea())
         .animation(.easeOut(duration: 0.25), value: session.kind)
         .task {
             ToastOverlay.shared.install(session: session)   // xabarlar sheet/alert ustida ham ko'rinadi
+            ShieldWindow.shared.install(session: session)   // qulf va maxfiylik pardasi — hamma oynalar ustida
             await session.start()
+            ShieldWindow.shared.set(shielded)
         }
-        .onChange(of: phase) { _, p in session.scenePhaseChanged(p) }
+        .onChange(of: shielded) { _, on in ShieldWindow.shared.set(on) }
+        .onChange(of: phase) { _, p in
+            session.scenePhaseChanged(p)
+            // qulf fonda qo'yiladi — Face ID ilova qaytganda so'raladi
+            if p == .active, session.locked { Task { await session.unlock() } }
+        }
     }
 }
 
@@ -114,7 +121,8 @@ private struct AddEntryButton: ViewModifier {
                 .accessibilityLabel("Yangi yozuv qo‘shish")
             }
         } else {
-            content.overlay(alignment: .bottomTrailing) {
+            // iOS 17–18: suzuvchi tugma ro'yxatlarning oxirgi qatorini yopmasin; klaviatura bilan ko'tarilmasin
+            content.contentMargins(.bottom, 76, for: .scrollContent).overlay(alignment: .bottomTrailing) {
                 Button { router.addEntry() } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 22, weight: .bold))
@@ -126,6 +134,7 @@ private struct AddEntryButton: ViewModifier {
                 .buttonStyle(PressableStyle())
                 .padding(.trailing, 18)
                 .padding(.bottom, 62)
+                .ignoresSafeArea(.keyboard)
                 .accessibilityLabel("Yangi yozuv qo‘shish")
             }
         }
@@ -197,7 +206,7 @@ struct LockView: View {
             guard !tried else { return }
             tried = true
             try? await Task.sleep(for: .milliseconds(350))
-            await session.unlock()
+            if UIApplication.shared.applicationState == .active { await session.unlock() }
         }
     }
 }

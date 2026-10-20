@@ -397,8 +397,10 @@ struct EntriesView: View {
                                                              query: Self.query(f, limit: min(2000, limit), offset: rows.count))
             guard gen == generation else { return }
             let have = Set(rows.map(\.id))
-            rows.append(contentsOf: page.rows.filter { !have.contains($0.id) })
-            total = page.rows.isEmpty ? rows.count : max(page.total, rows.count)
+            let fresh = page.rows.filter { !have.contains($0.id) }
+            rows.append(contentsOf: fresh)
+            // yangi qator kelmasa — oxiriga yetdik (aks holda «yana yuklash» aylanib qolardi)
+            total = fresh.isEmpty ? rows.count : max(page.total, rows.count)
         } catch is CancellationError {
         } catch {
             guard gen == generation else { return }

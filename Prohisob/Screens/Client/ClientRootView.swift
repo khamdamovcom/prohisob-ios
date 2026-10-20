@@ -197,6 +197,11 @@ private struct CliMenu: View {
                 } label: {
                     Label("Yordam (Telegram)", systemImage: "paperplane")
                 }
+                Button {
+                    openURL(AccApp.privacy)
+                } label: {
+                    Label("Maxfiylik siyosati", systemImage: "hand.raised")
+                }
             }
             Section {
                 Button(role: .destructive) {

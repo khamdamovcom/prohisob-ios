@@ -23,6 +23,8 @@ struct CliObjectView: View {
     @State private var loadError: Error?
     @State private var loadingMore = false
     @State private var moreFailed = false
+    /// yangilash (pull-to-refresh) eski «yana yuklash» javobini bekor qiladi
+    @State private var generation = 0
     @State private var receipts: CliReceipts?
     @State private var opening: Int?
 
@@ -153,10 +155,13 @@ struct CliObjectView: View {
         let detailPath = "/api/mijoz/objects/\(id)"
         let entriesPath = detailPath + "/entries"
         let limit = String(Self.pageSize)
+        generation += 1
+        let gen = generation
         do {
             async let d: MijozObjectDetail = API.shared.get(detailPath)
             async let p: MijozEntriesPage = API.shared.get(entriesPath, query: ["limit": limit, "offset": "0"])
             let (dd, pp) = try await (d, p)
+            guard gen == generation else { return }
             detail = dd
             rows = pp.rows
             total = max(pp.total, pp.rows.count)
@@ -172,9 +177,11 @@ struct CliObjectView: View {
         guard !loadingMore, rows.count < total else { return }
         loadingMore = true
         defer { loadingMore = false }
+        let gen = generation
         do {
             let p: MijozEntriesPage = try await API.shared.get("/api/mijoz/objects/\(id)/entries",
                                                                query: ["limit": String(Self.pageSize), "offset": String(rows.count)])
+            guard gen == generation else { return }
             let known = Set(rows.map(\.id))
             let fresh = p.rows.filter { !known.contains($0.id) }
             rows.append(contentsOf: fresh)

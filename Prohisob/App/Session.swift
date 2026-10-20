@@ -63,9 +63,17 @@ final class Session {
     private(set) var kabinetId: Int?
 
     private var toastTask: Task<Void, Never>?
+    private var unlocking = false
 
     init() {
         let d = UserDefaults.standard
+        // Keychain ilova o'chirilganda ham qoladi, UserDefaults (Face ID sozlamasi) esa o'chadi — qayta o'rnatilgan ilova
+        // eski hisobga qulfsiz kirmasin
+        if !d.bool(forKey: "installed") {
+            Keychain.set(nil, for: "token")
+            Keychain.set(nil, for: "kind")
+            d.set(true, forKey: "installed")
+        }
         lockEnabled = d.bool(forKey: "lockEnabled")
         theme = ThemeChoice(rawValue: d.string(forKey: "theme") ?? "") ?? .system
         kabinetId = d.object(forKey: "kabinet") as? Int
@@ -193,7 +201,10 @@ final class Session {
         me = nil
         mijozMe = nil
         locked = false
+        setKabinet(nil)
         Router.shared.reset()
+        // yuklab olingan Excel fayllar telefonda qolmasin
+        try? FileManager.default.removeItem(at: FileManager.default.temporaryDirectory.appendingPathComponent("eksport"))
     }
 
     // MARK: - Kabinet (faqat platforma egasi)
@@ -261,6 +272,9 @@ final class Session {
     }
 
     func unlock() async {
+        guard locked, !unlocking else { return }
+        unlocking = true
+        defer { unlocking = false }
         if await authenticate(reason: "Prohisob’ni ochish") {
             withAnimation(.easeOut(duration: 0.25)) { locked = false }
         }

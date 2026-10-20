@@ -341,7 +341,10 @@ struct AmountField: View {
                     .keyboardType(.numberPad)
                     .font(.money(large ? 34 : 20, .bold))
                     .foregroundStyle(Palette.ink)
-                    .onChange(of: text) { _, v in
+                    .onChange(of: text) { old, v in
+                        // faqat oxiriga yozilganda/o'chirilganda guruhlanadi — o'rtadan tahrirlaganda kursor sakramasin
+                        let d = { (s: String) in s.filter(\.isNumber) }
+                        guard d(v).hasPrefix(d(old)) || d(old).hasPrefix(d(v)) else { return }
                         let g = Fmt.groupTyping(v)
                         if g != v { text = g }
                     }
@@ -485,6 +488,8 @@ struct AuthImage: View {
                 let img = await Task.detached(priority: .userInitiated) { UIImage(data: d)?.preparingThumbnail(of: CGSize(width: 900, height: 900)) ?? UIImage(data: d) }.value
                 image = img
                 failed = img == nil
+            } catch is CancellationError {
+                // ekran yopildi — xato emas
             } catch { failed = true }
         }
     }
@@ -570,7 +575,8 @@ private struct ReceiptPage: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .task {
-            do { data = try await API.shared.data(ref.path) } catch { failed = true }
+            failed = false
+            do { data = try await API.shared.data(ref.path) } catch is CancellationError {} catch { failed = true }
         }
     }
 }

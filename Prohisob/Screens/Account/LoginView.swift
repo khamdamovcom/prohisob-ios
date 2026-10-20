@@ -268,6 +268,9 @@ private struct AccLoginFooter: View {
                 .glassBackground(Capsule())
             }
             .accessibilityLabel("prohisob.com saytini ochish")
+            Link("Maxfiylik siyosati", destination: AccApp.privacy)
+                .font(.footnote)
+                .foregroundStyle(Palette.muted)
         }
         .padding(.top, 4)
     }

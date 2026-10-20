@@ -280,7 +280,7 @@ struct EntAttachSources: ViewModifier {
                 defer { if scoped { url.stopAccessingSecurityScopedResource() } }
                 guard let d = try? Data(contentsOf: url) else { unreadable = true; continue }
                 if d.count > EntPrep.maxBytes { tooBig = true; continue }
-                out.append(EntPicked(file: UploadFile(data: d, filename: "chek.pdf", mime: "application/pdf"), thumb: nil))
+                out.append(EntPicked(file: UploadFile(data: d, filename: url.pathExtension.lowercased() == "pdf" ? url.lastPathComponent : "chek.pdf", mime: "application/pdf"), thumb: nil))
             }
             if tooBig { onError("PDF 20 MB dan katta — yuklab bo‘lmaydi") }
             else if unreadable { onError("PDF faylni o‘qib bo‘lmadi") }

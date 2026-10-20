@@ -3,6 +3,7 @@
 // yaratilgan login-parolni ko'rsatib ulashish oynasi.
 import SwiftUI
 import UIKit
+import UniformTypeIdentifiers
 
 /// Javobi ishlatilmaydigan POST/PUT so'rovlari uchun — istalgan JSON'ni qabul qiladi
 struct AccIgnored: Decodable {
@@ -16,6 +17,7 @@ enum AccApp {
     static let support = URL(string: "https://t.me/khamdamov")!
     static let cabinet = URL(string: "https://cabinet.prohisob.com")!
     static let home = URL(string: "https://prohisob.com")!
+    static let privacy = URL(string: "https://cabinet.prohisob.com/maxfiylik")!
 }
 
 /// Boshqa odamga beriladigan parol: 8 belgi, adashtiradigan harflarsiz (l, i, o, 0, 1)
@@ -354,7 +356,9 @@ struct AccCredentialsView: View {
                 }
                 .buttonStyle(PressableStyle())
                 Button {
-                    UIPasteboard.general.string = cred.shareText
+                    // parol bor matn: faqat shu telefonda (iCloud orqali boshqa qurilmaga o'tmaydi), 2 daqiqadan keyin o'chadi
+                    UIPasteboard.general.setItems([[UTType.plainText.identifier: cred.shareText]],
+                                                  options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
                     session.show("Nusxalandi")
                 } label: {
                     Label("Matnni nusxalash", systemImage: "doc.on.doc")

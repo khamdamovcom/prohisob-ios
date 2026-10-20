@@ -170,6 +170,7 @@ struct ObjForm: View {
     // MARK: Saqlash
 
     private func save() async {
+        guard !saving else { return }   // ikki marta bosilsa ikkita yozuv yaratilmasin
         let n = ObjText.trim(name)
         guard !n.isEmpty else {
             errorText = "Obyekt nomini yozing."

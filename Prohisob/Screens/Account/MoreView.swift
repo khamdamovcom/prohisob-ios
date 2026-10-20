@@ -133,6 +133,10 @@ struct MoreView: View {
                 AccRowLabel(title: "Qo‘llab-quvvatlash", symbol: "paperplane.fill", tone: .blue, value: "Telegram", external: true)
             }
             .accRow()
+            Link(destination: AccApp.privacy) {
+                AccRowLabel(title: "Maxfiylik siyosati", symbol: "hand.raised.fill", tone: .gray, external: true)
+            }
+            .accRow()
             Button {
                 showAbout = true
             } label: {

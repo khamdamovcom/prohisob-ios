@@ -127,8 +127,25 @@ final class API: @unchecked Sendable {
         _ = try await send("DELETE", API.url(path))
     }
 
-    /// Chek rasmlari / PDF: POST /api/entries/:id/files (multipart, «files» maydoni, 10 tagacha, 20 MB gacha)
+    /// Chek rasmlari / PDF: POST /api/entries/:id/files (multipart, «files» maydoni, 10 tagacha, 20 MB gacha).
+    /// nginx bitta so'rovga 32 MB gacha qabul qiladi — fayllar ~28 MB lik bo'laklarga bo'lib yuboriladi.
     func upload(entryId: Int, files: [UploadFile]) async throws -> UploadResponse {
+        var batches: [[UploadFile]] = []
+        var cur: [UploadFile] = []
+        var size = 0
+        for f in files {
+            if !cur.isEmpty, size + f.data.count > 28 << 20 || cur.count >= 10 {
+                batches.append(cur); cur = []; size = 0
+            }
+            cur.append(f); size += f.data.count
+        }
+        if !cur.isEmpty { batches.append(cur) }
+        var all: [FileInfo] = []
+        for b in batches { all += try await uploadBatch(entryId: entryId, files: b).cheklar ?? [] }
+        return UploadResponse(ok: true, cheklar: all)
+    }
+
+    private func uploadBatch(entryId: Int, files: [UploadFile]) async throws -> UploadResponse {
         let boundary = "prohisob-" + UUID().uuidString
         var body = Data()
         for f in files {
@@ -203,9 +220,10 @@ final class API: @unchecked Sendable {
         let code = (resp as? HTTPURLResponse)?.statusCode ?? 0
         if (200..<300).contains(code) { return data }
         let msg = (try? JSONSerialization.jsonObject(with: data) as? [String: Any])?["error"] as? String
-        if code == 401, tok != nil {
-            // token eskirgan yoki parol almashgan — sessiya yopiladi
-            onUnauthorized?()
+        if code == 401, let tok {
+            // token eskirgan yoki parol almashgan — sessiya yopiladi (faqat hali joriy token bo'lsa: chiqib, boshqa hisobga
+            // kirilgandan keyin kelgan eski so'rov javobi yangi sessiyani yopmasin)
+            if tok == token { onUnauthorized?() }
             throw APIError.unauthorized
         }
         if let msg, !msg.isEmpty { throw APIError.server(msg, code) }
