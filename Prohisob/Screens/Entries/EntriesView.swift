@@ -587,18 +587,13 @@ private struct EntMenuChip: View {
     }
 }
 
-/// Chiplar paneli: iOS 26 — tizim «safe area bar» (shisha chegarasi bilan), oldingi — oddiy fon
+/// Chiplar paneli ro'yxat tepasida turadi (safeAreaBar katta sarlavhani xiralashtirgani uchun — safeAreaInset)
 private struct EntTopBar<Bar: View>: ViewModifier {
     let bar: Bar
 
-    @ViewBuilder
     func body(content: Content) -> some View {
-        if #available(iOS 26.0, *) {
-            content.safeAreaBar(edge: .top) { bar }
-        } else {
-            content.safeAreaInset(edge: .top, spacing: 0) {
-                bar.background(Palette.bg)
-            }
+        content.safeAreaInset(edge: .top, spacing: 0) {
+            bar.background(Palette.bg)
         }
     }
 }

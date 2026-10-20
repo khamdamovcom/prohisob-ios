@@ -416,6 +416,7 @@ private struct NewEntForm: View {
                 detailsSection
                 receiptsSection
             }
+            .listSectionSpacing(.compact)
             .scrollContentBackground(.hidden)
             .background(Palette.bg)
             .scrollDismissesKeyboard(.interactively)
@@ -652,7 +653,7 @@ private struct NewEntForm: View {
     }
 
     private func autofocus() async {
-        guard session.shot == nil, model.amount == 0 else { return }
+        guard model.amount == 0 else { return }   // VAQTINCHA: skrinshotda fokusni tekshirish
         try? await Task.sleep(for: .milliseconds(450))
         guard !Task.isCancelled, picking == nil else { return }
         focus = .amount
