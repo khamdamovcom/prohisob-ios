@@ -96,7 +96,6 @@ struct DashboardView: View {
     @State private var loading = false
 
     var body: some View {
-        ScrollViewReader { proxy in
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 DashGreeting()
@@ -105,16 +104,6 @@ struct DashboardView: View {
             .padding(.horizontal, Metrics.pad)
             .padding(.top, 2)
             .padding(.bottom, 32)
-        }
-        // VAQTINCHA: skrinshot tekshiruvi (pastki bo'limlar) — keyin olib tashlanadi
-        .onChange(of: data == nil) { _, isNil in
-            guard !isNil, let s = session.shot else { return }
-            if s.hasPrefix("home@") {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { proxy.scrollTo(String(s.dropFirst(5)), anchor: .top) }
-            } else if s.hasPrefix("rep@"), router.homePath.isEmpty {
-                router.push(.report)
-            }
-        }
         }
         .background(Palette.bg.ignoresSafeArea())
         .navigationTitle("Asosiy")
@@ -172,10 +161,10 @@ struct DashboardView: View {
                 .opacity(loading ? 0.6 : 1)
             DashQuickActions()
             tiles(d)
-            objectsSection(d).id("objects")
-            workersSection(d).id("workers")
+            objectsSection(d)
+            workersSection(d)
             shopsSection(d)
-            recentSection(d).id("recent")
+            recentSection(d)
         }
         .animation(.easeOut(duration: 0.2), value: loading)
     }
@@ -370,7 +359,7 @@ struct DashboardView: View {
     private func load() async {
         let r = period.range
         loading = true
-        defer { loading = false }
+        defer { if !Task.isCancelled { loading = false } }
         do {
             let d: Dashboard = try await API.shared.get("/api/dashboard", query: ["from": r.from, "to": r.to])
             data = d
